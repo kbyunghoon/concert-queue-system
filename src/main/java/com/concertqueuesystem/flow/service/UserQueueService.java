@@ -30,7 +30,8 @@ public class UserQueueService {
     public Mono<Long> allowUser(final String queue, final Long count) {
         return reactiveRedisTemplate.opsForZSet().popMin(USER_QUEUE_WAIT_KEY.formatted(queue), count)
                 .flatMap(member -> reactiveRedisTemplate.opsForZSet()
-                        .add(USER_QUEUE_PROCEED_KEY.formatted(queue), member.getValue(), Instant.now().getEpochSecond()))
+                        .add(USER_QUEUE_PROCEED_KEY.formatted(queue), member.getValue(),
+                                Instant.now().getEpochSecond()))
                 .count();
     }
 
@@ -38,5 +39,11 @@ public class UserQueueService {
         return reactiveRedisTemplate.opsForZSet().rank(USER_QUEUE_PROCEED_KEY.formatted(queue), userId.toString())
                 .defaultIfEmpty(-1L)
                 .map(rank -> rank >= 0);
+    }
+
+    public Mono<Long> getRank(final String queue, final Long userId) {
+        return reactiveRedisTemplate.opsForZSet().rank(USER_QUEUE_WAIT_KEY.formatted(queue), userId.toString())
+                .defaultIfEmpty(-1L)
+                .map(rank -> rank >= 0 ? rank + 1 : rank);
     }
 }
