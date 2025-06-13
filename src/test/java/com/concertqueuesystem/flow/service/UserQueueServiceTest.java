@@ -131,4 +131,28 @@ class UserQueueServiceTest {
                 .expectNext(true)
                 .verifyComplete();
     }
+
+    @Test
+    @DisplayName("첫 번째 등록된 사용자의 순번은 1번으로 조회")
+    void getRank() {
+        StepVerifier.create(
+                        userQueueService.registerWaitQueue("default", 100L)
+                                .then(userQueueService.getRank("default", 100L)))
+                .expectNext(1L)
+                .verifyComplete();
+
+        StepVerifier.create(
+                        userQueueService.registerWaitQueue("default", 101L)
+                                .then(userQueueService.getRank("default", 101L)))
+                .expectNext(2L)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("등록되지 않은 사용자의 순번은 -1을 반환")
+    void getRank2() {
+        StepVerifier.create(userQueueService.getRank("default", 100L))
+                .expectNext(-1L)
+                .verifyComplete();
+    }
 }
